@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Todo List</title>
+
+  <!-- Load Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter :wght@400;500&family=Lora:wght@400;600&family=Poppins:wght@500;600;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to bottom right, #e0ecff, #d6e7ff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .todo-container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+      width: 80vw;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    .todo-header {
+      padding: 24px;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #333;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .todo-input-section {
+      padding: 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .add-button {
+      width: calc(100% - 40px);
+      margin: 0 20px;
+      padding: 16px;
+      font-size: 1.2rem;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .add-button:hover {
+      background-color: #218838;
+    }
+
+    ul.todo-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      position: relative;
+    }
+
+    li.slide-in {
+      animation: slideInTop 0.3s ease forwards;
+    }
+
+    @keyframes slideInTop {
+      from {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      padding: 20px;
+      cursor: pointer;
+      position: relative;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background-color 0.3s ease;
+    }
+
+    .task-item.completed {
+      background-color: #e6f9e6;
+    }
+
+    .task-item input[type="checkbox"] {
+      margin-right: 20px;
+      transform: scale(1.3);
+    }
+
+    .task-title {
+      flex: 1;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #2c3e50;
+      font-family: 'Poppins', sans-serif;
+      transition: text-decoration 0.3s ease;
+    }
+
+    .task-title.completed-task {
+      text-decoration: line-through;
+      color: #888;
+    }
+
+    .task-actions button {
+      margin-left: 12px;
+      background: none;
+      border: none;
+      font-weight: 600;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .task-actions .edit-btn,
+    .task-actions .save-btn {
+      color: #007bff;
+    }
+
+    .task-actions .delete-btn {
+      color: #dc3545;
+    }
+
+    .task-actions button:hover {
+      opacity: 0.8;
+    }
+
+    .task-details {
+      padding: 0 20px 20px 40px;
+      background-color: #f9f9f9;
+      display: none;
+      border-top: 1px solid #eee;
+      transition: background-color 0.3s ease;
+    }
+
+    .task-item.completed + .task-details {
+      background-color: #e6f9e6 !important;
+    }
+
+    .details-content {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .description-label {
+      font-size: 0.95rem;
+      color: #666;
+      font-weight: 500;
+      font-family: 'Lora', serif;
+    }
+
+    .description-text {
+      font-size: 1rem;
+      color: #333;
+      font-family: 'Lora', serif;
+      line-height: 1.5;
+    }
+
+    .task-date {
+      font-size: 0.85rem;
+      color: #777;
+      margin-top: 6px;
+      font-family: 'Lora', serif;
+    }
+
+    /* Modal Styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      display: none;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 24px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-content h2 {
+      margin-top: 0;
+      font-size: 1.5rem;
+      margin-bottom: 16px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+    }
+
+    .modal-content label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: #333;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .modal-content input,
+    .modal-content textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      resize: vertical;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .modal-content .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .btn-cancel,
+    .btn-save {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .btn-cancel {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-save {
+      background: #28a745;
+      color: white;
+    }
+
+    .no-tasks {
+      text-align: center;
+      padding: 30px 20px;
+      color: #999;
+      font-style: italic;
+      font-size: 1.2rem;
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="todo-container">
+    <div class="todo-header">My Tasks</div>
+    <div class="todo-input-section">
+      <button class="add-button" onclick="openAddModal()">+ Add New Task</button>
+    </div>
+    <ul id="todoList" class="todo-list"></ul>
+  </div>
+
+  <!-- Modal for Adding New Task -->
+  <div class="modal" id="addTaskModal">
+    <div class="modal-content">
+      <h2>Add New Task</h2>
+      <label for="modalTitle">Title</label>
+      <input type="text" id="modalTitle" placeholder="Enter task title" />
+      <label for="modalDescription">Description</label>
+      <textarea id="modalDescription" rows="3" placeholder="Enter task description"></textarea>
+      <div class="actions">
+        <button class="btn-cancel" onclick="closeAddModal()">Cancel</button>
+        <button class="btn-save" onclick="saveNewTask()">Add Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Editing Task -->
+  <div class="modal" id="editTaskModal">
+    <div class="modal-content">
+      <h2>Edit Task</h2>
+      <label for="editTitle">Title</label>
+      <input type="text" id="editTitle" placeholder="Enter task title" />
+      <label for="editDescription">Description</label>
+      <textarea id="editDescription" rows="3" placeholder="Enter task description"></textarea>
+      <div class="actions">
+        <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+        <button class="btn-save" onclick="saveEditedTask()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Get CSRF Token
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    let tasks = [];
+
+    async function fetchTasks() {
+      try {
+        const response = await fetch("/tasks/");
+        if (!response.ok) throw new Error("Failed to load tasks");
+
+        const apiData = await response.json();
+
+        tasks = apiData.map(task => ({
+          id: task.id,
+          title: task.title,
+          description: task.content || "No description provided.",
+          completed: task.completed,
+          createdAt: new Date(task.created_at).toLocaleString(),
+        }));
+
+        renderTasks();
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+        document.getElementById("todoList").innerHTML =
+          "<li class='no-tasks'>Could not load tasks. Please try again later.</li>";
+      }
+    }
+
+    function renderTasks() {
+      const list = document.getElementById("todoList");
+      list.innerHTML = "";
+
+      if (tasks.length === 0) {
+        list.innerHTML = "<li class='no-tasks'>No tasks yet. Add one above!</li>";
+        return;
+      }
+
+      tasks.forEach((task, index) => {
+        const wrapper = document.createElement("li");
+
+        const item = document.createElement("div");
+        item.className = "task-item";
+        if (task.completed) item.classList.add("completed");
+        item.onclick = () => toggleDetails(wrapper);
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = task.completed;
+        checkbox.onclick = (e) => {
+          e.stopPropagation();
+          toggleComplete(task.id);
+        };
+
+        const span = document.createElement("span");
+        span.className = "task-title";
+        span.textContent = task.title;
+        if (task.completed) span.classList.add("completed-task");
+
+        const actions = document.createElement("div");
+        actions.className = "task-actions";
+
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "Edit";
+        editBtn.className = "edit-btn";
+        editBtn.onclick = (e) => {
+          e.stopPropagation();
+          openEditModal(task);
+        };
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.className = "delete-btn";
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          confirmDelete(task.id);
+        };
+
+        actions.appendChild(editBtn);
+        actions.appendChild(deleteBtn);
+
+        item.appendChild(checkbox);
+        item.appendChild(span);
+        item.appendChild(actions);
+
+        const details = document.createElement("div");
+        details.className = "task-details";
+        details.id = `details-${task.id}`;
+        details.style.display = "none";
+
+        const detailContent = document.createElement("div");
+        detailContent.className = "details-content";
+
+        const descLabel = document.createElement("span");
+        descLabel.className = "description-label";
+        descLabel.textContent = "Description:";
+
+        const descText = document.createElement("span");
+        descText.className = "description-text";
+        descText.textContent = task.description;
+
+        const taskDate = document.createElement("span");
+        taskDate.className = "task-date";
+        taskDate.textContent = task.createdAt;
+
+        detailContent.appendChild(descLabel);
+        detailContent.appendChild(descText);
+        detailContent.appendChild(taskDate);
+
+        details.appendChild(detailContent);
+        wrapper.appendChild(item);
+        wrapper.appendChild(details);
+        list.appendChild(wrapper);
+
+        if (task.isNew) {
+          setTimeout(() => {
+            wrapper.classList.add("slide-in");
+            delete task.isNew;
+
+            setTimeout(() => {
+              wrapper.classList.remove("slide-in");
+            }, 300);
+          }, 10);
+        }
+      });
+    }
+
+    function toggleDetails(wrapper) {
+      const details = wrapper.querySelector(".task-details");
+      const isVisible = details.style.display === "block";
+      details.style.display = isVisible ? "none" : "block";
+    }
+
+    function openAddModal() {
+      document.getElementById("addTaskModal").classList.add("active");
+      document.getElementById("modalTitle").value = "";
+      document.getElementById("modalDescription").value = "";
+    }
+
+    function closeAddModal() {
+      document.getElementById("addTaskModal").classList.remove("active");
+    }
+
+    async function saveNewTask() {
+      const titleInput = document.getElementById("modalTitle");
+      const descInput = document.getElementById("modalDescription");
+
+      const title = titleInput.value.trim();
+      const description = descInput.value.trim();
+
+      if (!title) {
+        alert("Please enter a title.");
+        return;
+      }
+
+      const now = new Date().toISOString();
+
+      const payload = {
+        title,
+        content: description || "",
+        completed: false,
+        created_at: now
+      };
+
+      try {
+        const response = await fetch("/tasks/add/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error("Failed to create task");
+
+        const savedTask = await response.json();
+
+        tasks.unshift({
+          id: savedTask.id,
+          title: savedTask.title,
+          description: savedTask.content || "No description provided.",
+          completed: savedTask.completed,
+          createdAt: new Date(savedTask.created_at).toLocaleString(),
+          isNew: true
+        });
+
+        closeAddModal();
+        renderTasks();
+      } catch (error) {
+        console.error("Error saving task:", error);
+        alert("Could not save task. Check console for details.");
+      }
+    }
+
+    function openEditModal(task) {
+      document.getElementById("editTitle").value = task.title;
+      document.getElementById("editDescription").value = task.description;
+      document.getElementById("editTaskModal").dataset.taskId = task.id;
+      document.getElementById("editTaskModal").classList.add("active");
+    }
+
+    function closeEditModal() {
+      document.getElementById("editTaskModal").classList.remove("active");
+    }
+
+    async function saveEditedTask() {
+      const taskId = parseInt(document.getElementById("editTaskModal").dataset.taskId);
+      const title = document.getElementById("editTitle").value.trim();
+      const description = document.getElementById("editDescription").value.trim();
+
+      if (!title) {
+        alert("Please enter a title.");
+        return;
+      }
+
+      const payload = {
+        title,
+        content: description || "",
+        completed: false
+      };
+
+      try {
+        const response = await fetch(`/tasks/${taskId}/`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error("Failed to update task");
+
+        const updatedTask = await response.json();
+
+        tasks = tasks.map(task =>
+          task.id === taskId
+            ? {
+                ...task,
+                title: updatedTask.title,
+                description: updatedTask.content || "No description provided.",
+                completed: updatedTask.completed,
+                createdAt: new Date(updatedTask.created_at).toLocaleString()
+              }
+            : task
+        );
+
+        closeEditModal();
+        renderTasks();
+      } catch (error) {
+        console.error("Error updating task:", error);
+        alert("Could not update task. Check console for details.");
+      }
+    }
+
+    async function deleteTask(id) {
+      try {
+        const response = await fetch(`/tasks/${id}/`, {
+          method: "DELETE",
+          headers: {
+            "X-CSRFToken": csrftoken
+          }
+        });
+
+        if (!response.ok) throw new Error("Failed to delete task");
+
+        tasks = tasks.filter(task => task.id !== id);
+        renderTasks();
+      } catch (error) {
+        console.error("Error deleting task:", error);
+        alert("Could not delete task. Check console for details.");
+      }
+    }
+
+    function confirmDelete(id) {
+      if (confirm("Are you sure you want to delete this task?")) {
+        deleteTask(id);
+      }
+    }
+
+    function toggleComplete(id) {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+
+      task.completed = !task.completed;
+      const index = tasks.findIndex(t => t.id === id);
+      tasks[index] = task;
+
+      // Send PUT request to update backend
+      fetch(`/tasks/${id}/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrftoken
+        },
+        body: JSON.stringify({
+          title: task.title,
+          content: task.description,
+          completed: task.completed,
+          created_at: new Date(task.createdAt).toISOString()
+        })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("Failed to sync completion status");
+        return response.json();
+      })
+      .catch(error => {
+        console.error("Error syncing completion:", error);
+        alert("Could not sync completion status.");
+      });
+
+      renderTasks();
+    }
+
+    window.onload = fetchTasks;
+  </script>
+</body>
+</html>
