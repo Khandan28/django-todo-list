@@ -135,9 +135,7 @@ kubectl apply -f service.yaml
 ---
 
 ## 🖼️ Application Screenshots
-```
 ![Tasks](images/tasks.png)
-```
 
 ---
 
